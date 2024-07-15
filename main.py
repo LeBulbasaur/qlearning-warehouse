@@ -44,7 +44,15 @@ for i in range(1000):
         if R[current_state, j] > 0:
             playable_actions.append(j)
     next_state = np.random.choice(playable_actions)
-    TD = R[current_state, next_state] + gamma*Q[next_state, np.argmax(Q[next_state,])] - Q[current_state, next_state]
+    TD = R[current_state, next_state] + gamma*Q[next_state, np.argmax(Q[next_state,:])] - Q[current_state, next_state]
     Q[current_state, next_state] = Q[current_state, next_state] + alpha*TD
 
-print(Q.astype(int))
+warehouse_map = np.zeros([3,4])
+
+for a in range(12):
+    y, x = divmod(a, 4)
+    max_Q_value = np.max(Q[a, :])
+    if max_Q_value > warehouse_map[y, x]:
+        warehouse_map[y, x] = max_Q_value
+
+print(warehouse_map.astype(int))
