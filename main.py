@@ -45,21 +45,21 @@ def clicked(event):
 
     if choose_start:
         for i in range(1, 25, 2):
-            if marked_locations[get_location((i - 1) // 2)] == 1:
+            if marked_locations[get_location((i - 1) // 2)] == 1 or marked_locations[get_location((i - 1) // 2)] == 3:
                 marked_locations[get_location((i - 1) // 2)] = 0
                 c.itemconfig(i, fill="#4C566A")
         marked_locations[clicked_item] = 1
-        c.itemconfig(event.widget.find_closest(event.x, event.y), fill="#A3BE8C")
+        c.itemconfig(event.widget.find_closest(event.x, event.y), fill="#88C0D0")
         btn_start.config(state="active")
         choose_start = False
 
     if choose_end:
         for i in range(1, 25, 2):
-            if marked_locations[get_location((i - 1) // 2)] == 2:
+            if marked_locations[get_location((i - 1) // 2)] == 2 or marked_locations[get_location((i - 1) // 2)] == 3:
                 marked_locations[get_location((i - 1) // 2)] = 0
                 c.itemconfig(i, fill="#4C566A")
         marked_locations[clicked_item] = 2
-        c.itemconfig(event.widget.find_closest(event.x, event.y), fill="#EBCB8B")
+        c.itemconfig(event.widget.find_closest(event.x, event.y), fill="#5E81AC")
         btn_end.config(state="active")
         choose_end = False
 
@@ -122,12 +122,12 @@ def placeholder_function(event):
 # Tworzenie ścian
 for a in range(1, 3):
     for b in range(4):
-        c.create_rectangle(100*b+10, 100*a, 100*b+110, 100*a+10, fill="green", tags="wallbutton")
+        c.create_rectangle(100*b+10, 100*a, 100*b+110, 100*a+10, fill="#A3BE8C", tags="wallbutton")
         c.tag_bind("wallbutton", "<Button-1>", placeholder_function)
 
 for a in range(1, 4):
     for b in range(3):
-        c.create_rectangle(100*a+5, 100*b+10, 100*a+15, 100*b+110, fill="green", tags="wallbutton")
+        c.create_rectangle(100*a+5, 100*b+10, 100*a+15, 100*b+110, fill="#A3BE8C", tags="wallbutton")
         c.tag_bind("wallbutton", "<Button-1>", placeholder_function)
 
 def route():
@@ -143,13 +143,17 @@ def route():
             location = get_location(next_state)
             start_state = next_state
             path = np.append(path, location)
-        print(path)
+        # print(path)
+        for location in path:
+            if location != start and location != end:
+                marked_locations[location] = 3
+                c.itemconfig(location_to_state[location]*2+1, fill="#B48EAD")
     except ValueError:
         print("ERROR: Please choose both start and end locations.")
 
 btn_route = Button(root, text='Draw route', width=8, height=1, bd='3', command=route)
 btn_route.place(x=150, y=403)
 
-print(warehouse_map.astype(int))
+# print(warehouse_map.astype(int))
 
 root.mainloop()
