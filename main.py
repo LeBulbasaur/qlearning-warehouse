@@ -154,7 +154,6 @@ print(warehouse_map.astype(int))
 # print(Q.astype(int))
 
 def route():
-    print(marked_locations)
     start = list(marked_locations.keys())[list(marked_locations.values()).index(1)]
     end = list(marked_locations.keys())[list(marked_locations.values()).index(2)]
     try:
