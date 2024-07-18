@@ -109,7 +109,7 @@ for a in range(12):
 vertical_walls = np.zeros([1,12]).astype(int)[0]
 horizontal_walls = np.zeros([1,8]).astype(int)[0]
 
-def placeholder_function_vertical(event):
+def function_vertical(event):
     val = event.widget.find_closest(event.x, event.y)[0]-32
     if val < 0:
         return
@@ -130,7 +130,7 @@ def placeholder_function_vertical(event):
         R[val][val-1] = 1
         c.itemconfig(event.widget.find_closest(event.x, event.y), fill="#A3BE8C")
 
-def placeholder_function_horizontal(event):
+def function_horizontal(event):
     val = event.widget.find_closest(event.x, event.y)[0]-24
     if val < 0:
         return
@@ -156,7 +156,7 @@ def placeholder_function_horizontal(event):
 for a in range(1, 3):
     for b in range(4):
         c.create_rectangle(100*b+10, 100*a, 100*b+110, 100*a+10, fill="#A3BE8C", tags="wallbutton_horizontal")
-        c.tag_bind("wallbutton_horizontal", "<Button-1>", placeholder_function_horizontal)
+        c.tag_bind("wallbutton_horizontal", "<Button-1>", function_horizontal)
 
 for a in range(3):
     for b in range(1, 5):
@@ -164,7 +164,7 @@ for a in range(3):
             c.create_rectangle(0, 0, 0, 0, tags="wallbutton_vertical")
         else:
             c.create_rectangle(100*b+5, 100*a+10, 100*b+15, 100*a+110, fill="#A3BE8C", tags="wallbutton_vertical")
-            c.tag_bind("wallbutton_vertical", "<Button-1>", placeholder_function_vertical)
+            c.tag_bind("wallbutton_vertical", "<Button-1>", function_vertical)
 
 # Trening Q-learning
 def route():
