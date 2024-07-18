@@ -28,15 +28,13 @@ R = np.array([
     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
     [1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
     [0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0],
-    [0, 0, 1, 0, 0, 1, 1000, 1, 0, 0, 1, 0],
+    [0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0],
     [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1],
     [0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
     [0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0],
     [0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1],
     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0]
 ])
-
-Q = np.zeros([12, 12])
 
 def get_location(index):
     return list(location_to_state.keys())[list(location_to_state.values())[index]]
@@ -75,7 +73,7 @@ def clicked(event):
     if choose_end:
         for i in range(1, 25, 2):
             if marked_locations[get_location((i - 1) // 2)] == 2:
-                # R[(i - 1) // 2][(i - 1) // 2] = 0
+                R[(i - 1) // 2][(i - 1) // 2] = 0
                 marked_locations[get_location((i - 1) // 2)] = 0
                 c.itemconfig(i, fill="#4C566A")
             elif marked_locations[get_location((i - 1) // 2)] == 3:
@@ -83,11 +81,10 @@ def clicked(event):
                 c.itemconfig(i, fill="#4C566A")
         marked_locations[clicked_item] = 2
         index = (event.widget.find_closest(event.x, event.y)[0] - 1) // 2
-        # R[index][index] = 1000
+        R[index][index] = 1000
         c.itemconfig(event.widget.find_closest(event.x, event.y), fill="#5E81AC")
         btn_end.config(state="active")
         choose_end = False
-        print(R)
 
 root = Tk()
 root.geometry('420x450')
@@ -102,23 +99,8 @@ btn_start.place(x=150, y=343)
 btn_end = Button(root, text='Choose End', width=8, height=1, bd='3', command=toggle_choosing_end)
 btn_end.place(x=150, y=373)
 
-
-# Trening Q-learning
-for i in range(1000):
-    current_state = np.random.randint(0, 12)
-    playable_actions = [j for j in range(12) if R[current_state, j] > 0]
-    next_state = np.random.choice(playable_actions)
-    TD = R[current_state, next_state] + gamma * np.max(Q[next_state]) - Q[current_state, next_state]
-    Q[current_state, next_state] += alpha * TD
-
-warehouse_map = np.zeros([3, 4])
-
-# Tworzenie przycisków na mapie
 for a in range(12):
     y, x = divmod(a, 4)
-    max_Q_value = np.max(Q[a])
-    if max_Q_value > warehouse_map[y, x]:
-        warehouse_map[y, x] = max_Q_value
     text = get_location(a)
     c.create_rectangle(100*x+10, 100*y+10, 100*x+110, 100*y+110, fill="#4C566A", tags="playbutton")
     c.create_text(100*x+60, 100*y+55, text=text, font=("Comic Sans MS", 18), fill="#ECEFF4", tags="playbutton-text")
@@ -131,29 +113,42 @@ def placeholder_function_vertical(event):
     val = event.widget.find_closest(event.x, event.y)[0]-32
     if val < 0:
         return
-    print("Clicked on a vertical wall")
-    print(val)
+
+    for i in range(1, 25, 2):
+        if marked_locations[get_location((i - 1) // 2)] == 3:
+            marked_locations[get_location((i - 1) // 2)] = 0
+            c.itemconfig(i, fill="#4C566A")
 
     if vertical_walls[val-1] == 0:
         vertical_walls[val-1] = 1
         c.itemconfig(event.widget.find_closest(event.x, event.y), fill="#BF616A")
-        print(get_location(val-1), get_location(val))
+        R[val-1][val] = 0
+        R[val][val-1] = 0
     else:
         vertical_walls[val-1] = 0
+        R[val-1][val] = 1
+        R[val][val-1] = 1
         c.itemconfig(event.widget.find_closest(event.x, event.y), fill="#A3BE8C")
 
 def placeholder_function_horizontal(event):
     val = event.widget.find_closest(event.x, event.y)[0]-24
     if val < 0:
         return
-    print("Clicked on a horizontal wall")
-    print(val)
+    
+    for i in range(1, 25, 2):
+        if marked_locations[get_location((i - 1) // 2)] == 3:
+            marked_locations[get_location((i - 1) // 2)] = 0
+            c.itemconfig(i, fill="#4C566A")
 
     if horizontal_walls[val-1] == 0:
         horizontal_walls[val-1] = 1
+        R[val-1][val+3] = 0
+        R[val+3][val-1] = 0
         c.itemconfig(event.widget.find_closest(event.x, event.y), fill="#BF616A")
     else:
         horizontal_walls[val-1] = 0
+        R[val-1][val+3] = 0
+        R[val+3][val-1] = 0
         c.itemconfig(event.widget.find_closest(event.x, event.y), fill="#A3BE8C")
 
 
@@ -171,7 +166,16 @@ for a in range(3):
             c.create_rectangle(100*b+5, 100*a+10, 100*b+15, 100*a+110, fill="#A3BE8C", tags="wallbutton_vertical")
             c.tag_bind("wallbutton_vertical", "<Button-1>", placeholder_function_vertical)
 
+# Trening Q-learning
 def route():
+    Q = np.zeros([12, 12])
+
+    for i in range(1000):
+        current_state = np.random.randint(0, 12)
+        playable_actions = [j for j in range(12) if R[current_state, j] > 0]
+        next_state = np.random.choice(playable_actions)
+        TD = R[current_state, next_state] + gamma * np.max(Q[next_state]) - Q[current_state, next_state]
+        Q[current_state, next_state] += alpha * TD
     try:
         start = list(marked_locations.keys())[list(marked_locations.values()).index(1)]
         end = list(marked_locations.keys())[list(marked_locations.values()).index(2)]
@@ -184,7 +188,6 @@ def route():
             location = get_location(next_state)
             start_state = next_state
             path = np.append(path, location)
-        # print(path)
         for location in path:
             if location != start and location != end:
                 marked_locations[location] = 3
@@ -194,7 +197,5 @@ def route():
 
 btn_route = Button(root, text='Draw route', width=8, height=1, bd='3', command=route)
 btn_route.place(x=150, y=403)
-
-# print(warehouse_map.astype(int))
 
 root.mainloop()
