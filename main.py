@@ -106,7 +106,7 @@ for a in range(12):
     c.create_text(100*x+60, 100*y+55, text=text, font=("Comic Sans MS", 18), fill="#ECEFF4", tags="playbutton-text")
     c.tag_bind("playbutton", "<Button-1>", clicked)
 
-vertical_walls = np.zeros([1,9]).astype(int)[0]
+vertical_walls = np.zeros([1,12]).astype(int)[0]
 horizontal_walls = np.zeros([1,8]).astype(int)[0]
 
 def placeholder_function_vertical(event):
@@ -176,6 +176,15 @@ def route():
         next_state = np.random.choice(playable_actions)
         TD = R[current_state, next_state] + gamma * np.max(Q[next_state]) - Q[current_state, next_state]
         Q[current_state, next_state] += alpha * TD
+
+    warehouse_map = np.zeros([3, 4])
+    for a in range(12):
+        y, x = divmod(a, 4)
+        max_Q_value = np.max(Q[a, :])
+        max_Q_value = np.max(Q[a])
+        if max_Q_value > warehouse_map[y, x]:
+            warehouse_map[y, x] = max_Q_value
+    print(warehouse_map.astype(int))
     try:
         start = list(marked_locations.keys())[list(marked_locations.values()).index(1)]
         end = list(marked_locations.keys())[list(marked_locations.values()).index(2)]
@@ -183,6 +192,7 @@ def route():
         start_state = location_to_state[start]
         end_state = location_to_state[end]
         next_state = start_state
+        # print(np.argmax(Q[start_state]))
         while next_state != end_state:
             next_state = np.argmax(Q[start_state])
             location = get_location(next_state)
