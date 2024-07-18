@@ -147,8 +147,8 @@ def placeholder_function_horizontal(event):
         c.itemconfig(event.widget.find_closest(event.x, event.y), fill="#BF616A")
     else:
         horizontal_walls[val-1] = 0
-        R[val-1][val+3] = 0
-        R[val+3][val-1] = 0
+        R[val-1][val+3] = 1
+        R[val+3][val-1] = 1
         c.itemconfig(event.widget.find_closest(event.x, event.y), fill="#A3BE8C")
 
 
@@ -169,10 +169,13 @@ for a in range(3):
 # Trening Q-learning
 def route():
     Q = np.zeros([12, 12])
+    error = False
 
     for i in range(1000):
         current_state = np.random.randint(0, 12)
         playable_actions = [j for j in range(12) if R[current_state, j] > 0]
+        if len(playable_actions) == 0:
+            continue
         next_state = np.random.choice(playable_actions)
         TD = R[current_state, next_state] + gamma * np.max(Q[next_state]) - Q[current_state, next_state]
         Q[current_state, next_state] += alpha * TD
@@ -184,7 +187,10 @@ def route():
         max_Q_value = np.max(Q[a])
         if max_Q_value > warehouse_map[y, x]:
             warehouse_map[y, x] = max_Q_value
-    print(warehouse_map.astype(int))
+    
+    if error:
+        return
+
     try:
         start = list(marked_locations.keys())[list(marked_locations.values()).index(1)]
         end = list(marked_locations.keys())[list(marked_locations.values()).index(2)]
@@ -192,7 +198,10 @@ def route():
         start_state = location_to_state[start]
         end_state = location_to_state[end]
         next_state = start_state
-        # print(np.argmax(Q[start_state]))
+        if np.max(Q[start_state]) < 10:
+            print(Q[start_state])
+            messagebox.showerror("showerror", "ERROR: Starting sector has been cut off!")
+            raise Exception("Starting point is trapped!")
         while next_state != end_state:
             next_state = np.argmax(Q[start_state])
             location = get_location(next_state)
