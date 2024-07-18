@@ -1,4 +1,4 @@
-from tkinter import Tk, Canvas, Button
+from tkinter import Tk, Canvas, Button, messagebox
 import numpy as np
 
 # Parametry algorytmu Q-learning
@@ -193,7 +193,7 @@ def route():
                 marked_locations[location] = 3
                 c.itemconfig(location_to_state[location]*2+1, fill="#B48EAD")
     except ValueError:
-        print("ERROR: Please choose both start and end locations.")
+        messagebox.showerror("showerror", "ERROR: Please choose both start and end locations.")
 
 btn_route = Button(root, text='Draw route', width=8, height=1, bd='3', command=route)
 btn_route.place(x=150, y=403)
