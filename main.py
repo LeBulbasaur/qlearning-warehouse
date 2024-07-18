@@ -19,6 +19,25 @@ location_to_state = {
 # Oznaczenie lokalizacji
 marked_locations = {key: 0 for key in location_to_state.keys()}
 
+actions = list(range(12))
+
+R = np.array([
+    [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+    [0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0],
+    [0, 0, 1, 0, 0, 1, 1000, 1, 0, 0, 1, 0],
+    [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1],
+    [0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0]
+])
+
+Q = np.zeros([12, 12])
+
 def get_location(index):
     return list(location_to_state.keys())[list(location_to_state.values())[index]]
 
@@ -55,13 +74,20 @@ def clicked(event):
 
     if choose_end:
         for i in range(1, 25, 2):
-            if marked_locations[get_location((i - 1) // 2)] == 2 or marked_locations[get_location((i - 1) // 2)] == 3:
+            if marked_locations[get_location((i - 1) // 2)] == 2:
+                # R[(i - 1) // 2][(i - 1) // 2] = 0
+                marked_locations[get_location((i - 1) // 2)] = 0
+                c.itemconfig(i, fill="#4C566A")
+            elif marked_locations[get_location((i - 1) // 2)] == 3:
                 marked_locations[get_location((i - 1) // 2)] = 0
                 c.itemconfig(i, fill="#4C566A")
         marked_locations[clicked_item] = 2
+        index = (event.widget.find_closest(event.x, event.y)[0] - 1) // 2
+        # R[index][index] = 1000
         c.itemconfig(event.widget.find_closest(event.x, event.y), fill="#5E81AC")
         btn_end.config(state="active")
         choose_end = False
+        print(R)
 
 root = Tk()
 root.geometry('420x450')
@@ -76,24 +102,6 @@ btn_start.place(x=150, y=343)
 btn_end = Button(root, text='Choose End', width=8, height=1, bd='3', command=toggle_choosing_end)
 btn_end.place(x=150, y=373)
 
-actions = list(range(12))
-
-R = np.array([
-    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0],
-    [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-    [0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 1, 0, 0, 0, 1000, 1, 0, 0, 0, 0],
-    [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1],
-    [0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0]
-])
-
-Q = np.zeros([12, 12])
 
 # Trening Q-learning
 for i in range(1000):
@@ -116,19 +124,52 @@ for a in range(12):
     c.create_text(100*x+60, 100*y+55, text=text, font=("Comic Sans MS", 18), fill="#ECEFF4", tags="playbutton-text")
     c.tag_bind("playbutton", "<Button-1>", clicked)
 
-def placeholder_function(event):
-    print("Clicked on a wall")
+vertical_walls = np.zeros([1,9]).astype(int)[0]
+horizontal_walls = np.zeros([1,8]).astype(int)[0]
+
+def placeholder_function_vertical(event):
+    val = event.widget.find_closest(event.x, event.y)[0]-32
+    if val < 0:
+        return
+    print("Clicked on a vertical wall")
+    print(val)
+
+    if vertical_walls[val-1] == 0:
+        vertical_walls[val-1] = 1
+        c.itemconfig(event.widget.find_closest(event.x, event.y), fill="#BF616A")
+        print(get_location(val-1), get_location(val))
+    else:
+        vertical_walls[val-1] = 0
+        c.itemconfig(event.widget.find_closest(event.x, event.y), fill="#A3BE8C")
+
+def placeholder_function_horizontal(event):
+    val = event.widget.find_closest(event.x, event.y)[0]-24
+    if val < 0:
+        return
+    print("Clicked on a horizontal wall")
+    print(val)
+
+    if horizontal_walls[val-1] == 0:
+        horizontal_walls[val-1] = 1
+        c.itemconfig(event.widget.find_closest(event.x, event.y), fill="#BF616A")
+    else:
+        horizontal_walls[val-1] = 0
+        c.itemconfig(event.widget.find_closest(event.x, event.y), fill="#A3BE8C")
+
 
 # Tworzenie ścian
 for a in range(1, 3):
     for b in range(4):
-        c.create_rectangle(100*b+10, 100*a, 100*b+110, 100*a+10, fill="#A3BE8C", tags="wallbutton")
-        c.tag_bind("wallbutton", "<Button-1>", placeholder_function)
+        c.create_rectangle(100*b+10, 100*a, 100*b+110, 100*a+10, fill="#A3BE8C", tags="wallbutton_horizontal")
+        c.tag_bind("wallbutton_horizontal", "<Button-1>", placeholder_function_horizontal)
 
-for a in range(1, 4):
-    for b in range(3):
-        c.create_rectangle(100*a+5, 100*b+10, 100*a+15, 100*b+110, fill="#A3BE8C", tags="wallbutton")
-        c.tag_bind("wallbutton", "<Button-1>", placeholder_function)
+for a in range(3):
+    for b in range(1, 5):
+        if b == 4:
+            c.create_rectangle(0, 0, 0, 0, tags="wallbutton_vertical")
+        else:
+            c.create_rectangle(100*b+5, 100*a+10, 100*b+15, 100*a+110, fill="#A3BE8C", tags="wallbutton_vertical")
+            c.tag_bind("wallbutton_vertical", "<Button-1>", placeholder_function_vertical)
 
 def route():
     try:
